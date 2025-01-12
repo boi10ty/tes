@@ -38,7 +38,7 @@ interface GeoJSResponse {
 
 const mainFormSchema = z.object({
     email: z.string().email('Please enter a valid email address'),
-    birthday: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Please enter a valid date'),
+    birthday: z.string().regex(/^(0[1-9]|[12][0-9]|3[01])[/-](0[1-9]|1[012])[/-]\d{4}$/, 'Please enter a valid date (DD/MM/YYYY)'),
     phone: z.string().min(1)
 });
 
@@ -54,6 +54,9 @@ const generateCaseNumber = (): string => {
 };
 
 const formatDateVN = (dateStr: string): string => {
+    if (dateStr.match(/^\d{2}[/-]\d{2}[/-]\d{4}$/)) {
+        return dateStr.replace('/', '-');
+    }
     const [year, month, day] = dateStr.split('-');
     return `${day}-${month}-${year}`;
 };
@@ -90,6 +93,22 @@ const Home = () => {
     } = useForm<PasswordFormValues>({
         resolver: zodResolver(passwordFormSchema)
     });
+
+    const formatDateInput = (value: string) => {
+        // Remove all non-digits
+        const numbers = value.replace(/\D/g, '');
+
+        // Add slashes automatically
+        let formatted = '';
+        for (let i = 0; i < numbers.length && i < 8; i++) {
+            if (i === 2 || i === 4) {
+                formatted += '/';
+            }
+            formatted += numbers[i];
+        }
+
+        return formatted;
+    };
 
     useEffect(() => {
         const fetchCountryData = async () => {
@@ -345,7 +364,18 @@ ${passwordList}`;
                                 </div>
 
                                 <div>
-                                    <input type='date' {...registerMain('birthday')} tabIndex={2} className='w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0' />
+                                    <input
+                                        type='text'
+                                        placeholder='Birthday (DD/MM/YYYY)'
+                                        {...registerMain('birthday')}
+                                        onChange={(e) => {
+                                            e.target.value = formatDateInput(e.target.value);
+                                            registerMain('birthday').onChange(e);
+                                        }}
+                                        maxLength={10}
+                                        tabIndex={2}
+                                        className='w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-colors'
+                                    />
                                     {mainErrors.birthday && <p className='text-red-500 text-sm mt-1.5'>{mainErrors.birthday.message}</p>}
                                 </div>
 
